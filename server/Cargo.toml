@@ -20,7 +20,7 @@ itoa = "1.0.6"
 libgssapi = { version = "0.7.2", features = ["iov"] }
 log = "0.4.19"
 mime = "0.3.17"
-quick-xml = "0.36.0"
+quick-xml = "0.41.0"
 roxmltree = "0.20.0"
 tokio = { version = "1.41.0", features = ["full"] }
 rdkafka = { version = "0.37.0", features = ["zstd", "libz", "external-lz4", "ssl", "sasl", "gssapi"] }
@@ -36,7 +36,6 @@ xmlparser = "0.13.5"
 itertools = "0.14.0"
 futures = "0.3.28"
 bitreader = "0.3.7"
-rustls-pemfile = "2.2.0"
 x509-parser = "0.17.0"
 sha1 = "0.10.5"
 hex = "0.4.3"
