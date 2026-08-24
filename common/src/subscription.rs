@@ -97,7 +97,7 @@ impl TcpConfiguration {
         // Check that addr is a hostname if tls is enabled
         if tls_enabled {
             if IpAddr::from_str(&host).is_ok() {
-                bail!("host must be a hostname if tls is enabled, found {}", &host);
+                bail!("host must be a hostname if tls is enabled, found {}", host);
             }
 
             if tls_certificate_authorities.is_empty() {

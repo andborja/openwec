@@ -4,10 +4,9 @@ use hex::ToHex;
 use log::{debug, info, warn};
 use sha1::{Digest, Sha1};
 use std::collections::HashMap;
-use std::fs;
-use std::io::BufReader;
 use std::sync::Arc;
 use tokio_rustls::rustls::crypto::aws_lc_rs::{default_provider, ALL_CIPHER_SUITES};
+use tokio_rustls::rustls::pki_types::pem::{Error as PemError, PemObject};
 use tokio_rustls::rustls::pki_types::{CertificateDer, PrivateKeyDer};
 use tokio_rustls::rustls::server::WebPkiClientVerifier;
 use tokio_rustls::rustls::{RootCertStore, ServerConfig, ALL_VERSIONS};
@@ -18,42 +17,29 @@ use crate::sldc;
 
 /// Load certificates contained inside a PEM file
 pub fn load_certs(filename: &str) -> Result<Vec<CertificateDer<'static>>> {
-    let certfile = fs::File::open(filename)?;
-    let mut reader = BufReader::new(certfile);
+    debug!("Loading certificates {:?}", filename);
 
-    debug!("Loaded certificate {:?}", filename);
-
-    let mut certs = Vec::new();
-    for cert_res in rustls_pemfile::certs(&mut reader) {
-        match cert_res {
-            Ok(cert) => certs.push(cert.clone()),
-            Err(error) => return Err(anyhow::anyhow!(error)),
-        }
-    }
+    let certs = CertificateDer::pem_file_iter(filename)
+        .with_context(|| format!("Cannot open certificate file {:?}", filename))?
+        .collect::<std::result::Result<Vec<_>, _>>()
+        .with_context(|| format!("Cannot parse certificate file {:?}", filename))?;
     Ok(certs)
 }
 
 /// Load private key contained inside a file
 pub fn load_priv_key(filename: &str) -> Result<PrivateKeyDer<'static>> {
-    let keyfile = fs::File::open(filename).context("Cannot open private key file")?;
-    let mut reader = BufReader::new(keyfile);
-
     debug!("Loading private key {:?}", filename);
 
-    loop {
-        match rustls_pemfile::read_one(&mut reader).context("Cannot parse private key file")? {
-            Some(rustls_pemfile::Item::Pkcs1Key(key)) => return Ok(PrivateKeyDer::Pkcs1(key)),
-            Some(rustls_pemfile::Item::Pkcs8Key(key)) => return Ok(PrivateKeyDer::Pkcs8(key)),
-            Some(rustls_pemfile::Item::Sec1Key(key)) => return Ok(PrivateKeyDer::Sec1(key)),
-            None => break,
-            _ => {}
+    match PrivateKeyDer::from_pem_file(filename) {
+        Ok(key) => Ok(key),
+        Err(PemError::NoItemsFound) => bail!(
+            "No keys found in {:?} (encrypted keys not supported)",
+            filename
+        ),
+        Err(error) => {
+            Err(error).with_context(|| format!("Cannot parse private key file {:?}", filename))
         }
     }
-
-    bail!(
-        "No keys found in {:?} (encrypted keys not supported)",
-        filename
-    )
 }
 
 /// Certificate thumbprint = SHA-1 of entire certificate, as a hexadecimal string

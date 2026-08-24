@@ -44,7 +44,7 @@ pub fn new_uuid() -> String {
 }
 
 pub trait Serializable {
-    fn serialize<W: std::io::Write>(&self, writer: &mut Writer<W>) -> quick_xml::Result<()>;
+    fn serialize<W: std::io::Write>(&self, writer: &mut Writer<W>) -> std::io::Result<()>;
 }
 
 #[derive(Debug)]
@@ -55,7 +55,7 @@ pub struct Subscription {
 }
 
 impl Serializable for Subscription {
-    fn serialize<W: std::io::Write>(&self, writer: &mut Writer<W>) -> quick_xml::Result<()> {
+    fn serialize<W: std::io::Write>(&self, writer: &mut Writer<W>) -> std::io::Result<()> {
         writer
             .create_element("m:Subscription")
             .with_attribute(("xmlns:m", SUBSCRIPTION_NS))
@@ -76,9 +76,9 @@ impl Serializable for Subscription {
                     .write_inner_content(|writer| {
                         self.header.serialize(writer)?;
                         self.body.serialize(writer)?;
-                        Ok::<(), quick_xml::Error>(())
+                        Ok::<(), std::io::Error>(())
                     })?;
-                Ok::<(), quick_xml::Error>(())
+                Ok::<(), std::io::Error>(())
             })?;
         Ok(())
     }
@@ -105,7 +105,7 @@ pub struct SubscriptionBody {
 }
 
 impl Serializable for SubscriptionBody {
-    fn serialize<W: std::io::Write>(&self, writer: &mut Writer<W>) -> quick_xml::Result<()> {
+    fn serialize<W: std::io::Write>(&self, writer: &mut Writer<W>) -> std::io::Result<()> {
         writer
             .create_element("s:Body")
             .write_inner_content(|writer| {
@@ -132,9 +132,9 @@ impl Serializable for SubscriptionBody {
                                                 .create_element("Revision")
                                                 .write_text_content(BytesText::new(revision))?;
                                         }
-                                        Ok::<(), quick_xml::Error>(())
+                                        Ok::<(), std::io::Error>(())
                                     })?;
-                                Ok::<(), quick_xml::Error>(())
+                                Ok::<(), std::io::Error>(())
                             })?;
                         writer
                             .create_element("e:Delivery")
@@ -164,7 +164,7 @@ impl Serializable for SubscriptionBody {
                                                         .create_element("Revision")
                                                         .write_text_content(BytesText::new(revision))?;
                                                 }
-                                                Ok::<(), quick_xml::Error>(())
+                                                Ok::<(), std::io::Error>(())
                                             })?;
                                         writer
                                             .create_element("c:Policy")
@@ -205,11 +205,11 @@ impl Serializable for SubscriptionBody {
                                                                                 .write_text_content(BytesText::new(
                                                                                     tmb,
                                                                                 ))?;
-                                                                                Ok::<(), quick_xml::Error>(())
+                                                                                Ok::<(), std::io::Error>(())
                                                                             })?;
-                                                                            Ok::<(), quick_xml::Error>(())
+                                                                            Ok::<(), std::io::Error>(())
                                                                         })?;
-                                                                    Ok::<(), quick_xml::Error>(())
+                                                                    Ok::<(), std::io::Error>(())
                                                                     // ----- END TLS ----- //
                                                                 }
                                                                 else {
@@ -223,15 +223,15 @@ impl Serializable for SubscriptionBody {
                                                                             SPNEGO_KERBEROS,
                                                                         ))
                                                                         .write_empty()?;
-                                                                    Ok::<(), quick_xml::Error>(())
+                                                                    Ok::<(), std::io::Error>(())
                                                                     // ----- END KRB ----- //
                                                                 }
                                                             })?;
-                                                        Ok::<(), quick_xml::Error>(())
+                                                        Ok::<(), std::io::Error>(())
                                                     })?;
-                                                Ok::<(), quick_xml::Error>(())
+                                                Ok::<(), std::io::Error>(())
                                             })?;
-                                        Ok::<(), quick_xml::Error>(())
+                                        Ok::<(), std::io::Error>(())
                                     },
                                 )?;
                                 writer
@@ -274,7 +274,7 @@ impl Serializable for SubscriptionBody {
                                 writer
                                     .create_element("w:ContentEncoding")
                                     .write_text_content(BytesText::new("UTF-16"))?;
-                                Ok::<(), quick_xml::Error>(())
+                                Ok::<(), std::io::Error>(())
                             })?;
                         writer
                             .create_element("w:Filter")
@@ -290,7 +290,7 @@ impl Serializable for SubscriptionBody {
                                         _ => (),
                                     };
                                 }
-                                Ok::<(), quick_xml::Error>(())
+                                Ok::<(), std::io::Error>(())
                             })?;
                         if let Some(bookmark) = &self.bookmark {
                             writer
@@ -305,13 +305,13 @@ impl Serializable for SubscriptionBody {
                                             _ => (),
                                         };
                                     }
-                                    Ok::<(), quick_xml::Error>(())
+                                    Ok::<(), std::io::Error>(())
                                 })?;
                         }
                         writer.create_element("w:SendBookmarks").write_empty()?;
-                        Ok::<(), quick_xml::Error>(())
+                        Ok::<(), std::io::Error>(())
                     })?;
-                Ok::<(), quick_xml::Error>(())
+                Ok::<(), std::io::Error>(())
             })?;
         Ok(())
     }
@@ -435,7 +435,7 @@ impl Header {
 }
 
 impl Serializable for Header {
-    fn serialize<W: std::io::Write>(&self, writer: &mut Writer<W>) -> quick_xml::Result<()> {
+    fn serialize<W: std::io::Write>(&self, writer: &mut Writer<W>) -> std::io::Result<()> {
         writer
             .create_element("s:Header")
             .write_inner_content(|writer| {
@@ -458,7 +458,7 @@ impl Serializable for Header {
                                 .create_element("a:Address")
                                 .with_attribute(("s:mustUnderstand", "true"))
                                 .write_text_content(BytesText::new(reply_to))?;
-                            Ok::<(), quick_xml::Error>(())
+                            Ok::<(), std::io::Error>(())
                         })?;
                 }
                 if let Some(action) = &self.action {
@@ -518,10 +518,10 @@ impl Serializable for Header {
                                         .write_empty()?,
                                 };
                             }
-                            Ok::<(), quick_xml::Error>(())
+                            Ok::<(), std::io::Error>(())
                         })?;
                 }
-                Ok::<(), quick_xml::Error>(())
+                Ok::<(), std::io::Error>(())
             })?;
         Ok(())
     }
@@ -534,7 +534,7 @@ pub enum Body {
 }
 
 impl Serializable for Body {
-    fn serialize<W: std::io::Write>(&self, writer: &mut Writer<W>) -> quick_xml::Result<()> {
+    fn serialize<W: std::io::Write>(&self, writer: &mut Writer<W>) -> std::io::Result<()> {
         match self {
             Body::EnumerateResponse(subscriptions) => {
                 writer
@@ -552,18 +552,19 @@ impl Serializable for Body {
                                         for subscription in subscriptions {
                                             subscription.serialize(writer)?;
                                         }
-                                        Ok::<(), quick_xml::Error>(())
+                                        Ok::<(), std::io::Error>(())
                                     })?;
                                 writer.create_element("w:EndOfSequence").write_empty()?;
-                                Ok::<(), quick_xml::Error>(())
+                                Ok::<(), std::io::Error>(())
                             })?;
-                        Ok::<(), quick_xml::Error>(())
+                        Ok::<(), std::io::Error>(())
                     })?;
             }
             x => {
-                return Err(quick_xml::Error::Io(
-                    std::io::Error::other(format!("Can not serialize body of {:?}", x)).into(),
-                ))
+                return Err(std::io::Error::other(format!(
+                    "Can not serialize body of {:?}",
+                    x
+                )))
             }
         }
         Ok(())
@@ -577,7 +578,7 @@ pub struct Message {
 }
 
 impl Serializable for Message {
-    fn serialize<W: std::io::Write>(&self, writer: &mut Writer<W>) -> quick_xml::Result<()> {
+    fn serialize<W: std::io::Write>(&self, writer: &mut Writer<W>) -> std::io::Result<()> {
         writer
             .create_element("s:Envelope")
             .with_attribute(("xml:lang", "en-US"))
@@ -596,7 +597,7 @@ impl Serializable for Message {
                         writer.create_element("s:Body").write_empty()?;
                     }
                 }
-                Ok::<(), quick_xml::Error>(())
+                Ok::<(), std::io::Error>(())
             })?;
         Ok(())
     }
